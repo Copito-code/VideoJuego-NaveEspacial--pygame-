@@ -249,7 +249,9 @@ fondo_y = 0
 velocidad_fondo = 2 #Puedes aumentar este numero para parezca que va mas rapido
 
 
-
+# Crear variable de tiempo antes de emepezar el juego
+tiempo_inicio = pygame.time.get_ticks()
+espera_inicial = 5000 #5000 milisegundos son 5sg
 
 
 
@@ -324,9 +326,10 @@ while ejecutando: #Mientras siga siendo verdadero me va a ajecutar ciertas accio
 
     
     # Condicionar la aparacion de enemigo
-    if not enemigo: 
-        for x in range(5):
+    tiempo_actual = pygame.time.get_ticks()
 
+    if not enemigo and (tiempo_actual - tiempo_inicio) > espera_inicial: 
+        for x in range(5):
             enemigos = enemy()
             enemigo.add(enemigos)
 
