@@ -19,9 +19,18 @@ def mostrar_menu(pantalla, fondo, fuente_titulo, fuente_boton):
         overlay.fill(NEGRO)
         pantalla.blit(overlay, (0,0))
 
-        #Dibujamos el titulo
+        #Dibujamos el titulo con padding Lateral
+        padding_lateral = 30
+        ancho_maximo = pantalla.get_width() - (padding_lateral * 2)
+
         superficie_titulo = fuente_titulo.render("GAME SPACE", True, CYAN)
-        rect_titulo = superficie_titulo.get_rect(center=(pantalla.get_width() // 2, 150))
+
+        #Si el titulo es mas ancho que el espacio permitido, lo encogemos
+        if superficie_titulo.get_width() > ancho_maximo:
+            nuevo_alto = int(superficie_titulo.get_height() * (ancho_maximo / superficie_titulo.get_width()))
+            superficie_titulo = pygame.transform.scale(superficie_titulo, (ancho_maximo, nuevo_alto))
+
+        rect_titulo = superficie_titulo.get_rect(center=(pantalla.get_width() // 2, 250))
         pantalla.blit(superficie_titulo, rect_titulo)
 
 
@@ -29,7 +38,7 @@ def mostrar_menu(pantalla, fondo, fuente_titulo, fuente_boton):
         mouse_pos = pygame.mouse.get_pos()
         #Definimos el rectangulo del boton
         boton_rect = pygame.Rect(0,0,250,60)
-        boton_rect.center = (pantalla.get_width() // 2, pantalla.get_height() // 2 +250)
+        boton_rect.center = (pantalla.get_width() // 2, pantalla.get_height() // 2 + 190)
 
 
         #Si el mouse esta sobre el boton, cambia el color 

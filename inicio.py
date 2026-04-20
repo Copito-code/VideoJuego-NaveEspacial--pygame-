@@ -1,3 +1,5 @@
+import menu
+
 from asyncio import events
 import pygame 
 import re
@@ -238,6 +240,16 @@ def text(pantalla, fuente_cargada, texto, color,x,y, offset=(0,0)):
 
 
 
+# Llamamos a la funcion del menu
+# Le pasamos la pantalla, el fondo y las fuentes que ya creaste
+
+menu.mostrar_menu(pantalla, fondo, pixel_grande, pixel_mediana)
+
+
+#Reiniciar el tiempo: Esto e vital para que tus 5sg empiecen a contar desde que se cierra el menu
+
+tiempo_inicio = pygame.time.get_ticks()
+
 
 
 #Ciclo del video juego
@@ -328,7 +340,7 @@ while ejecutando: #Mientras siga siendo verdadero me va a ajecutar ciertas accio
     # Condicionar la aparacion de enemigo
     tiempo_actual = pygame.time.get_ticks()
 
-    if not enemigo and (tiempo_actual - tiempo_inicio) > espera_inicial: 
+    if not enemigo and (tiempo_actual - tiempo_inicio) > 5000: 
         for x in range(5):
             enemigos = enemy()
             enemigo.add(enemigos)
