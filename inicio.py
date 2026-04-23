@@ -341,7 +341,7 @@ while ejecutando: #Mientras siga siendo verdadero me va a ajecutar ciertas accio
     tiempo_actual = pygame.time.get_ticks()
 
     if not enemigo and (tiempo_actual - tiempo_inicio) > 5000: 
-        for x in range(5):
+        for x in range(10):
             enemigos = enemy()
             enemigo.add(enemigos)
 

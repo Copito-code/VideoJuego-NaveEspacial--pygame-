@@ -26,31 +26,41 @@ class enemy(pygame.sprite.Sprite):
 
         #Aparaicion random
         self.rect.x = random.randrange(ANCHO - self.rect.width)
-        self.rect.y = random.randrange(300 - self.rect.height)
+        self.rect.y = random.randrange(-300, -100)
 
         #Movimientos
-        self.velocidad_x = random.randrange(1,10)
-        self.velocidad_y = random.randrange(1,10)
+        self.velocidad_x = random.randrange(-3,5)
+        while self.velocidad_x == 0: # Si sale 0, tira el dado de nuevo
+            self.velocidad_x = random.randrange(-3, 5)
+        self.velocidad_y = random.randrange(2,10)
 
     def update(self):
+        # 1. Aplicamos el movimiento
         self.rect.x += self.velocidad_x
         self.rect.y += self.velocidad_y
 
+        # 2. EL REGENERADOR (Teletransporte)
+        # Si la parte superior del OVNI pasa el fondo de la pantalla
+        if self.rect.top > ALTO:
+            self.rect.x = random.randrange(ANCHO - self.rect.width)
+            self.rect.y = random.randrange(-150, -50)
+            # Asignamos nuevas velocidades para que no se queden en 0
+            self.velocidad_y = random.randrange(2, 10) 
+            self.velocidad_x = random.randrange(-3, 5)
+            
+            while self.velocidad_x == 0: # Evitamos que el nuevo respawn sea tieso
+                self.velocidad_x = random.randrange(-3, 5)
 
-        #Limite izq y derh
+        # 3. LÍMITES LATERALES (Solo rebote en los lados)
+        # Esto reemplaza tus antiguos "if self.rect.left < 0" etc.
         if self.rect.left < 0:
-            self.velocidad_x += 1
+            self.rect.left = 0 
+            self.velocidad_x *= -1 
+        elif self.rect.right > ANCHO:
+            self.rect.right = ANCHO
+            self.velocidad_x *= -1
 
-        if self.rect.right > ANCHO:
-            self.velocidad_x -= 1
 
-        #Limite abajo y arriba
-        if self.rect.bottom > ALTO:
-            self.velocidad_y -=1
-
-        if self.rect.top < 0:
-            self.velocidad_y += 1
-        
 
 
 
