@@ -374,7 +374,7 @@ while ejecutando: #Mientras siga siendo verdadero me va a ajecutar ciertas accio
     balas.update()
 
     
-    #Colisiones de personajes
+    
     # Colisiones de personajes
     colision_nave = pygame.sprite.groupcollide(enemigo, jugador, True, False)
     colision_bala = pygame.sprite.groupcollide(enemigo, balas, True, True) 
@@ -418,15 +418,19 @@ while ejecutando: #Mientras siga siendo verdadero me va a ajecutar ciertas accio
             sonido_game_over.play()
 
             # AGREGADO: El Game Over se dispara JUSTO AQUÍ, al terminar la explosión
-            quiere_reintentar = menu.mostrar_game_over(pantalla, pixel_grande, pixel_mediana)
+            eleccion = menu.mostrar_game_over(pantalla, pixel_grande, pixel_mediana)
             
-            if quiere_reintentar:
-                #Si reintenta: Detener game over y volver a ambiente
+            if eleccion == "reintentar":
+                # Si reintenta: Detener game over y volver a ambiente
                 sonido_game_over.stop()
                 ambiente.play()
                 reiniciar_partida()
-            else:
-                ejecutando = False
+
+            elif eleccion == "salir":
+                # --- ESTO ES LO QUE CIERRA LA PANTALLA ---
+                import sys
+                pygame.quit() # Cierra Pygame
+                sys.exit()    # Cierra el proceso de Python por completo
         
         
 

@@ -205,7 +205,8 @@ def mostrar_game_over(pantalla, fuente_titulo, fuente_boton):
     ROJO_OSCURO = (150, 0, 0)
     ROJO_BRILLANTE = (255, 0, 0)
     BLANCO = (255, 255, 255)
-    NEGRO = (0, 0, 0)
+    GRIS_OSCURO = (50, 50, 50)
+
 
     #Cargar sonido (reutilizamos el mismo del menu para consistencia)
     try:
@@ -217,73 +218,91 @@ def mostrar_game_over(pantalla, fuente_titulo, fuente_boton):
 
 
     mouse_sonido = False
-    reintentar = False
+    eleccion = False
     esperando = True
 
 
     while esperando:
         pantalla.blit(captura_pantalla, (0,0))
         
-        #Crear Overlay con opacidad
+        # Crear Overlay con opacidad
         overlay = pygame.Surface((pantalla.get_width(), pantalla.get_height()))
-
-        #COntrol de colores
         overlay.set_alpha(180)
-        overlay.fill((20, 0, 0)) # COLOR DEL OVERLAY: Un rojo muy oscuro casi negro
-
+        overlay.fill((20, 0, 0)) 
         pantalla.blit(overlay,(0,0))
 
-        #Texto "GAME OVER" con un ligero brillo rojo
+        # Texto "GAME OVER"
         superficie_texto = fuente_titulo.render("GAME OVER", True, ROJO_OSCURO)
         rect_texto = superficie_texto.get_rect(center=(pantalla.get_width() // 2, 200))
         pantalla.blit(superficie_texto, rect_texto)
 
-
-        #Logica del boton "REINTENTAR"
+        # Logica de botones
         mouse_pos = pygame.mouse.get_pos()
-        #Rectangulo base: 250x60 igual que en el menu
-        boton_rect = pygame.Rect(0, 0, 350, 60)
-        boton_rect.center =(pantalla.get_width() // 2, 400)
+        
+        # --- BOTON REINTENTAR (Tu rectangulo original) ---
+        boton_reintentar_rect = pygame.Rect(0, 0, 350, 60)
+        boton_reintentar_rect.center = (pantalla.get_width() // 2, 380) # Subimos un poco para que quepa el otro
 
+        # --- BOTON SALIR (Nuevo rectangulo) ---
+        boton_salir_rect = pygame.Rect(0, 0, 350, 60)
+        boton_salir_rect.center = (pantalla.get_width() // 2, 480)
 
-        #Efecto Hover (reutilizamos tu logica de color)
-        if boton_rect.collidepoint(mouse_pos):
-            color_actual = ROJO_BRILLANTE
-
+        # EFECTO HOVER PARA REINTENTAR
+        if boton_reintentar_rect.collidepoint(mouse_pos):
+            color_reintentar = ROJO_BRILLANTE
             if not mouse_sonido:
-                if sonido_hover:
-                    sonido_hover.play()
+                if sonido_hover: sonido_hover.play()
                 mouse_sonido = True
-
-            # efecto de energia 
-            borde_glow = boton_rect.inflate(10, 10)
-            pygame.draw.rect(pantalla, BLANCO, borde_glow, width=2, border_radius=15)
+            
+            # Efecto glow original
+            pygame.draw.rect(pantalla, BLANCO, boton_reintentar_rect.inflate(10, 10), width=2, border_radius=15)
 
             if pygame.mouse.get_pressed()[0] == 1:
-                reintentar = True
+                eleccion = "reintentar"
                 esperando = False
-
         else:
-            color_actual = ROJO_OSCURO
+            color_reintentar = ROJO_OSCURO
+            # El mouse_sonido se resetea si no toca ninguno de los dos botones
+        
+        # EFECTO HOVER PARA SALIR
+        if boton_salir_rect.collidepoint(mouse_pos):
+            color_salir = ROJO_BRILLANTE # O puedes usar BLANCO para variar
+            if not mouse_sonido:
+                if sonido_hover: sonido_hover.play()
+                mouse_sonido = True
+            
+            pygame.draw.rect(pantalla, BLANCO, boton_salir_rect.inflate(10, 10), width=2, border_radius=15)
+
+            if pygame.mouse.get_pressed()[0] == 1:
+                eleccion = "salir"
+                esperando = False
+        else:
+            color_salir = GRIS_OSCURO
+
+        # Control de reset de sonido (si no toca ningun boton)
+        if not boton_reintentar_rect.collidepoint(mouse_pos) and not boton_salir_rect.collidepoint(mouse_pos):
             mouse_sonido = False
 
+        # Dibujar botones
+        pygame.draw.rect(pantalla, color_reintentar, boton_reintentar_rect, border_radius=10)
+        pygame.draw.rect(pantalla, color_salir, boton_salir_rect, border_radius=10)
 
-        #Dibujar boton
-        pygame.draw.rect(pantalla, color_actual, boton_rect, border_radius=10)
+        # Textos de los botones
+        superficie_btn_re = fuente_boton.render("REINTENTAR", True, BLANCO)
+        rect_btn_re = superficie_btn_re.get_rect(center=boton_reintentar_rect.center)
+        pantalla.blit(superficie_btn_re, rect_btn_re)
 
-        #Texto del boton
-        superficie_btn = fuente_boton.render("REINTENTAR", True, BLANCO)
-        rect_btn = superficie_btn.get_rect(center=boton_rect.center)
-        pantalla.blit(superficie_btn, rect_btn)
+        superficie_btn_sa = fuente_boton.render("SALIR", True, BLANCO)
+        rect_btn_sa = superficie_btn_sa.get_rect(center=boton_salir_rect.center)
+        pantalla.blit(superficie_btn_sa, rect_btn_sa)
 
-
-        #Eventos 
+        # Eventos 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
+                import sys
                 pygame.quit()
                 sys.exit()
 
         pygame.display.flip()
     
-    return reintentar #Si el jugador quiere juegar de nuevo
-
+    return eleccion
