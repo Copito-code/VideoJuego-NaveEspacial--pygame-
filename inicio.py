@@ -7,6 +7,9 @@ from enemy import enemy
 from fire import fire
 import random
 
+import animaciones
+
+
 # Dimensiones de ventana
 ANCHO = 800
 ALTO = 600
@@ -187,6 +190,19 @@ pixel_grande  = pygame.font.Font("fonts/PressStart2P-Regular.ttf", 80)
 ambiente = pygame.mixer.Sound("sonidos/sonido_fondo.mp3")
 ambiente.set_volume(0.4)
 
+
+#Sonido de Game Over
+sonido_game_over = pygame.mixer.Sound("sonidos/game_over.wav")
+sonido_game_over.set_volume(0.6)
+
+
+#sonido de explosion de la nave
+sonido_explosion_nave = pygame.mixer.Sound("sonidos/explosion_nave.wav")
+sonido_explosion_nave.set_volume(0.5)
+
+
+
+
 #sonido de disparo
 laser = pygame.mixer.Sound("sonidos/disparo.wav")
 laser.set_volume(0.2)
@@ -230,7 +246,7 @@ jugador.add(jugadores)
 
 
 #Sistema de puntuacion
-puntuacion = 0
+puntuacion = 50
 def text(pantalla, fuente_cargada, texto, color,x,y, offset=(0,0)):
     superficie = fuente_cargada.render(texto, True, color)
     rectangulo = superficie.get_rect()
@@ -264,6 +280,52 @@ velocidad_fondo = 2 #Puedes aumentar este numero para parezca que va mas rapido
 # Crear variable de tiempo antes de emepezar el juego
 tiempo_inicio = pygame.time.get_ticks()
 espera_inicial = 5000 #5000 milisegundos son 5sg
+
+
+
+
+#Funcion de reinicio
+def reiniciar_partida():
+    global puntuacion, tiempo_inicio
+    puntuacion = 50 #Empezamos con algo de puntos para no morir
+    enemigo.empty() #limpia los ovnis
+    balas.empty() #limpia los proyectiles
+    jugadores.rect.center = (400, 540) #regresa la nave a centro
+    tiempo_inicio = pygame.time.get_ticks() #resetea el reloj de spawn
+
+
+
+
+
+# Funcion para cargar la secuencia de imagenes
+def cargar_imagenes_explosion():
+    lista = []
+    for i in range(1, 12): #Ajustar numero segun frames que se tengan
+        #El nombre debe coincidir exacto con lo que tienes
+
+        #:03d le dice a python que convierta en numero 1 en "001"
+        nombre_archivo = f"img/explosion/ezgif-frame-{i:03d}.png"
+
+        try:
+            img = pygame.image.load(f"img/secuencia_explosion/ezgif-frame-{i:03d}.png")
+
+            #Quitar el fondo negro (color key)
+            img.set_colorkey((0,0,0))
+
+            #Escalamos la explosion para que sea imponente
+            img = pygame.transform.scale(img, (180, 180))
+
+            lista.append(img)
+
+        except pygame.error as e:
+            print(f"No se pudo cargar la imagen {nombre_archivo}: {e}")
+            break
+    return lista
+    
+#Ejecucion
+frames_explosion = cargar_imagenes_explosion()
+grupo_explosiones = pygame.sprite.Group()
+
 
 
 
@@ -313,22 +375,60 @@ while ejecutando: #Mientras siga siendo verdadero me va a ajecutar ciertas accio
 
     
     #Colisiones de personajes
-    colision_nave = pygame.sprite.groupcollide(enemigo,jugador, False,False)
+    # Colisiones de personajes
+    colision_nave = pygame.sprite.groupcollide(enemigo, jugador, True, False)
     colision_bala = pygame.sprite.groupcollide(enemigo, balas, True, True) 
 
-
-
-    #Condicones de colision
     if colision_nave:
         puntuacion -= 10
-
         for j in jugador:
             j.recibir_daño()
+
+        # Verificacion de derrota (solo aqui ocurre la explosion)
+        if puntuacion <= 0:
+            puntuacion = 0
+
+            #detener musica de fondo
+            ambiente.stop()
+
+            #Reproducir sonido de explosion
+            sonido_explosion_nave.play()
+
+            posicion_muerte = jugadores.rect.center
+            explosion_final = animaciones.Explosion(posicion_muerte, frames_explosion)
+            grupo_explosiones.add(explosion_final)
+
+            jugadores.rect.y = -2000
+
+            esperando_explosion = True
+            while esperando_explosion:
+                pantalla.blit(fondo, (0, fondo_y))
+                pantalla.blit(fondo, (0, fondo_y - ALTO))
+                
+                grupo_explosiones.update()
+                grupo_explosiones.draw(pantalla)
+                
+                pygame.display.flip()
+                clock.tick(FPS)
+                
+                if not grupo_explosiones:
+                    esperando_explosion = False
+
+            # Reproducir sonido de game over
+            sonido_game_over.play()
+
+            # AGREGADO: El Game Over se dispara JUSTO AQUÍ, al terminar la explosión
+            quiere_reintentar = menu.mostrar_game_over(pantalla, pixel_grande, pixel_mediana)
+            
+            if quiere_reintentar:
+                #Si reintenta: Detener game over y volver a ambiente
+                sonido_game_over.stop()
+                ambiente.play()
+                reiniciar_partida()
+            else:
+                ejecutando = False
         
-    
-    if puntuacion < 0:
-        puntuacion = 0
-         
+        
 
     if colision_bala:
         puntuacion += 30

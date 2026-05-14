@@ -33,7 +33,7 @@ class EstrellaFugaz(pygame.sprite.Sprite):
     def reset_posicion(self):
         # Aparece en la esquina superior izquierda, pero un poco fuera de pantalla
         self.rect.x = random.randrange(-200, -50)
-        self.rect.y = random.randrange(-200, -50)
+        self.rect.y = random.randrange(-700, -50)
         
         # Velocidad balanceada para una diagonal hacia abajo-derecha
         self.velocidad_x = random.randrange(4, 8)
@@ -73,12 +73,15 @@ class EstrellaFugaz(pygame.sprite.Sprite):
 
 
 
+
+
+
 def mostrar_menu(pantalla, fondo, fuente_titulo, fuente_boton):
 
     #Cargar sonido y variable de control
     try:
         sonido_hover = pygame.mixer.Sound("sonidos/hover_menu.wav")
-        sonido_hover.set_volume(0.3)
+        sonido_hover.set_volume(0.6)
     
     except:
         sonido_hover = None #Por si el archivo no existe aun
@@ -188,3 +191,99 @@ def mostrar_menu(pantalla, fondo, fuente_titulo, fuente_boton):
                 sys.exit()
 
         pygame.display.flip()
+
+
+
+
+
+#Menu de GAME OVER
+def mostrar_game_over(pantalla, fuente_titulo, fuente_boton):
+
+    captura_pantalla = pantalla.copy()
+
+    #Colores
+    ROJO_OSCURO = (150, 0, 0)
+    ROJO_BRILLANTE = (255, 0, 0)
+    BLANCO = (255, 255, 255)
+    NEGRO = (0, 0, 0)
+
+    #Cargar sonido (reutilizamos el mismo del menu para consistencia)
+    try:
+        sonido_hover = pygame.mixer.Sound("sonidos/hover_menu.wav")
+        sonido_hover.set_volume(0.6)
+
+    except:
+        sonido_hover = None
+
+
+    mouse_sonido = False
+    reintentar = False
+    esperando = True
+
+
+    while esperando:
+        pantalla.blit(captura_pantalla, (0,0))
+        
+        #Crear Overlay con opacidad
+        overlay = pygame.Surface((pantalla.get_width(), pantalla.get_height()))
+
+        #COntrol de colores
+        overlay.set_alpha(180)
+        overlay.fill((20, 0, 0)) # COLOR DEL OVERLAY: Un rojo muy oscuro casi negro
+
+        pantalla.blit(overlay,(0,0))
+
+        #Texto "GAME OVER" con un ligero brillo rojo
+        superficie_texto = fuente_titulo.render("GAME OVER", True, ROJO_OSCURO)
+        rect_texto = superficie_texto.get_rect(center=(pantalla.get_width() // 2, 200))
+        pantalla.blit(superficie_texto, rect_texto)
+
+
+        #Logica del boton "REINTENTAR"
+        mouse_pos = pygame.mouse.get_pos()
+        #Rectangulo base: 250x60 igual que en el menu
+        boton_rect = pygame.Rect(0, 0, 350, 60)
+        boton_rect.center =(pantalla.get_width() // 2, 400)
+
+
+        #Efecto Hover (reutilizamos tu logica de color)
+        if boton_rect.collidepoint(mouse_pos):
+            color_actual = ROJO_BRILLANTE
+
+            if not mouse_sonido:
+                if sonido_hover:
+                    sonido_hover.play()
+                mouse_sonido = True
+
+            # efecto de energia 
+            borde_glow = boton_rect.inflate(10, 10)
+            pygame.draw.rect(pantalla, BLANCO, borde_glow, width=2, border_radius=15)
+
+            if pygame.mouse.get_pressed()[0] == 1:
+                reintentar = True
+                esperando = False
+
+        else:
+            color_actual = ROJO_OSCURO
+            mouse_sonido = False
+
+
+        #Dibujar boton
+        pygame.draw.rect(pantalla, color_actual, boton_rect, border_radius=10)
+
+        #Texto del boton
+        superficie_btn = fuente_boton.render("REINTENTAR", True, BLANCO)
+        rect_btn = superficie_btn.get_rect(center=boton_rect.center)
+        pantalla.blit(superficie_btn, rect_btn)
+
+
+        #Eventos 
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+
+        pygame.display.flip()
+    
+    return reintentar #Si el jugador quiere juegar de nuevo
+
